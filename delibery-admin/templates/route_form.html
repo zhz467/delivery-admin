@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header {% if route %}bg-warning{% else %}bg-success{% endif %} text-white">
+        <h4 class="mb-0">
+            <i class="bi bi-map"></i> 
+            {{ 'Редактирование маршрута' if route else 'Создание маршрута' }}
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Курьер *</label>
+                    <select name="courier_id" class="form-select" required>
+                        <option value="">Выберите курьера</option>
+                        {% for courier in couriers %}
+                        <option value="{{ courier.id }}" 
+                                {% if route and route.courier_id == courier.id %}selected{% endif %}>
+                            {{ courier.user.full_name if courier.user else 'Курьер #' + courier.id|string }}
+                            ({{ courier.phone }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Дата *</label>
+                    <input type="date" name="date" class="form-control" 
+                           value="{{ route.date.strftime('%Y-%m-%d') if route else '' }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Время начала</label>
+                    <input type="time" name="start_time" class="form-control" 
+                           value="{{ route.start_time.strftime('%H:%M') if route and route.start_time else '' }}">
+                    <small class="text-muted">Необязательное поле</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Время окончания</label>
+                    <input type="time" name="end_time" class="form-control" 
+                           value="{{ route.end_time.strftime('%H:%M') if route and route.end_time else '' }}">
+                    <small class="text-muted">Необязательное поле</small>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Расстояние (км)</label>
+                    <input type="number" step="0.1" name="total_distance" class="form-control" 
+                           value="{{ route.total_distance if route else '' }}" placeholder="0.0">
+                    <small class="text-muted">Необязательное поле</small>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">Заметки</label>
+                    <textarea name="notes" class="form-control" rows="3" 
+                              placeholder="Дополнительная информация о маршруте...">{{ route.notes if route else '' }}</textarea>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Сохранить
+            </button>
+            <a href="{{ url_for('routes_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Отмена
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

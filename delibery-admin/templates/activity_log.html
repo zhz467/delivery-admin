@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-journal-text"></i> Журнал действий
+    </h2>
+    <div>
+        <button onclick="window.location.reload()" class="btn btn-primary">
+            <i class="bi bi-arrow-repeat"></i> Обновить
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <!-- Фильтры -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Поиск...">
+            </div>
+            <div class="col-md-3">
+                <select id="actionFilter" class="form-select">
+                    <option value="">Все действия</option>
+                    <option value="create">Создание</option>
+                    <option value="update">Обновление</option>
+                    <option value="delete">Удаление</option>
+                    <option value="login">Вход</option>
+                    <option value="logout">Выход</option>
+                    <option value="register">Регистрация</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="entityFilter" class="form-select">
+                    <option value="">Все сущности</option>
+                    <option value="order">Заказы</option>
+                    <option value="client">Клиенты</option>
+                    <option value="courier">Курьеры</option>
+                    <option value="route">Маршруты</option>
+                    <option value="user">Пользователи</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="dateFilter" class="form-control" placeholder="Дата">
+            </div>
+        </div>
+
+        <!-- Таблица журнала -->
+        <div class="table-responsive">
+            <table class="table table-hover" id="activityTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th style="width: 120px;">Время</th>
+                        <th style="width: 150px;">Пользователь</th>
+                        <th style="width: 100px;">Действие</th>
+                        <th style="width: 120px;">Сущность</th>
+                        <th style="width: 80px;">ID сущности</th>
+                        <th>Детали</th>
+                        <th style="width: 130px;">IP адрес</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in logs %}
+                    <tr class="log-row" data-action="{{ log.action }}" data-entity="{{ log.entity }}" data-date="{{ log.created_at.strftime('%Y-%m-%d') }}">
+                        <td>#{{ log.id }}</td>
+                        <td>
+                            <span title="{{ log.created_at.strftime('%H:%M:%S') }}">
+                                {{ log.created_at.strftime('%d.%m.%Y') }}<br>
+                                <small class="text-muted">{{ log.created_at.strftime('%H:%M:%S') }}</small>
+                            </span>
+                        </td>
+                        <td>
+                            <strong>{{ log.user.full_name }}</strong><br>
+                            <small class="text-muted">{{ log.user.email }}</small>
+                        </td>
+                        <td>
+                            {% if log.action == 'create' %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-plus-circle"></i> Создание
+                                </span>
+                            {% elif log.action == 'update' %}
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-pencil"></i> Обновление
+                                </span>
+                            {% elif log.action == 'delete' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-trash"></i> Удаление
+                                </span>
+                            {% elif log.action == 'login' %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-box-arrow-in-right"></i> Вход
+                                </span>
+                            {% elif log.action == 'logout' %}
+                                <span class="badge bg-secondary">
+                                    <i class="bi bi-box-arrow-right"></i> Выход
+                                </span>
+                            {% elif log.action == 'register' %}
+                                <span class="badge bg-primary">
+                                    <i class="bi bi-person-plus"></i> Регистрация
+                                </span>
+                            {% else %}
+                                <span class="badge bg-dark">{{ log.action }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                {% if log.entity == 'order' %}
+                                    <i class="bi bi-truck"></i> Заказ
+                                {% elif log.entity == 'client' %}
+                                    <i class="bi bi-people"></i> Клиент
+                                {% elif log.entity == 'courier' %}
+                                    <i class="bi bi-person-badge"></i> Курьер
+                                {% elif log.entity == 'route' %}
+                                    <i class="bi bi-map"></i> Маршрут
+                                {% elif log.entity == 'user' %}
+                                    <i class="bi bi-person"></i> Пользователь
+                                {% else %}
+                                    {{ log.entity }}
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>#{{ log.entity_id if log.entity_id else '-' }}</td>
+                        <td>
+                            <small>{{ log.details or '-' }}</small>
+                        </td>
+                        <td>
+                            <code>{{ log.ip_address or '-' }}</code>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
+                            <p class="text-muted mt-2">Нет записей в журнале действий</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Всего записей в журнале: <strong>{{ logs|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Фильтрация таблицы
+    document.getElementById('searchInput').addEventListener('keyup', filterTable);
+    document.getElementById('actionFilter').addEventListener('change', filterTable);
+    document.getElementById('entityFilter').addEventListener('change', filterTable);
+    document.getElementById('dateFilter').addEventListener('change', filterTable);
+    
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const actionValue = document.getElementById('actionFilter').value;
+        const entityValue = document.getElementById('entityFilter').value;
+        const dateValue = document.getElementById('dateFilter').value;
+        
+        const rows = document.querySelectorAll('.log-row');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            const action = row.dataset.action;
+            const entity = row.dataset.entity;
+            const date = row.dataset.date;
+            
+            let show = true;
+            
+            if (searchText && !text.includes(searchText)) {
+                show = false;
+            }
+            if (actionValue && action !== actionValue) {
+                show = false;
+            }
+            if (entityValue && entity !== entityValue) {
+                show = false;
+            }
+            if (dateValue && date !== dateValue) {
+                show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        // Показать сообщение если ничего не найдено
+        const tbody = document.querySelector('#activityTable tbody');
+        let noDataRow = document.getElementById('noDataRow');
+        
+        if (visibleCount === 0) {
+            if (!noDataRow) {
+                noDataRow = document.createElement('tr');
+                noDataRow.id = 'noDataRow';
+                noDataRow.innerHTML = '<td colspan="8" class="text-center py-5"><i class="bi bi-search" style="font-size: 48px; color: #ccc;"></i><p class="text-muted mt-2">Ничего не найдено</p></td>';
+                tbody.appendChild(noDataRow);
+            }
+        } else if (noDataRow) {
+            noDataRow.remove();
+        }
+    }
+</script>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+    .log-row {
+        transition: all 0.2s;
+    }
+    .log-row:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}

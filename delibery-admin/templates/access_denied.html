@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="display-1 text-danger">
+        <i class="bi bi-shield-exclamation"></i> 403
+    </div>
+    <h2 class="mb-4">Доступ запрещен</h2>
+    <p class="lead">{{ message if message else 'У вас недостаточно прав для просмотра этой страницы' }}</p>
+    <div class="mt-4">
+        <i class="bi bi-arrow-left-circle"></i>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+            Вернуться на главную
+        </a>
+    </div>
+</div>
+{% endblock %}

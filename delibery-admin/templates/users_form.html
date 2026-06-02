@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header {% if user %}bg-warning{% else %}bg-success{% endif %} text-white">
+        <h4 class="mb-0">
+            <i class="bi bi-person-gear"></i> 
+            {{ 'Редактирование пользователя' if user else 'Создание нового пользователя' }}
+        </h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Email *</label>
+                    <input type="email" name="email" class="form-control" 
+                           value="{{ user.email if user else '' }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">ФИО *</label>
+                    <input type="text" name="full_name" class="form-control" 
+                           value="{{ user.full_name if user else '' }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Телефон</label>
+                    <input type="text" name="phone" class="form-control" 
+                           value="{{ user.phone if user else '' }}" placeholder="+7 (999) 123-45-67">
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <div class="form-check mt-4">
+                        <input type="checkbox" name="is_active" value="true" 
+                               class="form-check-input" id="is_active"
+                               {% if user and user.is_active %}checked{% endif %}
+                               {% if not user %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">
+                            <i class="bi bi-check-circle"></i> Активен
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="col-md-12 mb-3">
+                    <label class="form-label">
+                        <i class="bi bi-key"></i> 
+                        {{ 'Новый пароль (оставьте пустым, если не хотите менять)' if user else 'Пароль *' }}
+                    </label>
+                    <input type="password" name="password" class="form-control" 
+                           {% if not user %}required{% endif %}
+                           placeholder="Минимум 6 символов">
+                    {% if user %}
+                    <small class="text-muted">Оставьте пустым, чтобы сохранить текущий пароль</small>
+                    {% endif %}
+                </div>
+                
+                <!-- БЛОК ВЫБОРА РОЛЕЙ -->
+                <div class="col-md-12 mb-3">
+                    <label class="form-label fw-bold">
+                        <i class="bi bi-shield-lock"></i> Роли и права доступа:
+                    </label>
+                    <div class="border rounded p-3 bg-light">
+                        <div class="row">
+                            {% for role in roles %}
+                            <div class="col-md-6 mb-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" 
+                                           name="roles" value="{{ role.id }}"
+                                           id="role_{{ role.id }}"
+                                           {% if user and role in user.roles %}checked{% endif %}>
+                                    <label class="form-check-label" for="role_{{ role.id }}">
+                                        <strong class="{% if role.name == 'admin' %}text-danger{% elif role.name == 'manager' %}text-warning{% elif role.name == 'courier_viewer' %}text-info{% else %}text-secondary{% endif %}">
+                                            <i class="bi bi-{% if role.name == 'admin' %}shield-lock{% elif role.name == 'manager' %}graph-up{% elif role.name == 'courier_viewer' %}truck{% else %}person{% endif %}"></i>
+                                            {{ role.name }}
+                                        </strong>
+                                    </label>
+                                    <br>
+                                    <small class="text-muted ms-4">
+                                        {% if role.name == 'admin' %}
+                                            🔑 Полный доступ ко всем функциям системы
+                                        {% elif role.name == 'manager' %}
+                                            📊 Управление заказами, клиентами и курьерами
+                                        {% elif role.name == 'courier_viewer' %}
+                                            🚚 Только просмотр своих маршрутов
+                                        {% elif role.name == 'user' %}
+                                            👤 Базовый доступ без прав редактирования
+                                        {% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save"></i> Сохранить
+            </button>
+            <a href="{{ url_for('users_list') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Отмена
+            </a>
+        </form>
+    </div>
+</div>
+
+<!-- Информационная карточка о ролях -->
+<div class="card mt-3 bg-info bg-opacity-10 border-info">
+    <div class="card-body">
+        <h6 class="card-title text-info">
+            <i class="bi bi-info-circle"></i> Информация о ролях:
+        </h6>
+        <ul class="mb-0 small">
+            <li><strong class="text-danger">admin</strong> - Полный доступ: может управлять пользователями, видеть все данные</li>
+            <li><strong class="text-warning">manager</strong> - Менеджер: управляет заказами, клиентами, курьерами</li>
+            <li><strong class="text-info">courier_viewer</strong> - Курьер: видит только свои маршруты</li>
+            <li><strong class="text-secondary">user</strong> - Пользователь: базовый доступ без прав изменения</li>
+        </ul>
+        <p class="small text-muted mt-2 mb-0">
+            <i class="bi bi-lightbulb"></i> Совет: Пользователь может иметь несколько ролей одновременно. 
+            Например, можно назначить и manager, и courier_viewer.
+        </p>
+    </div>
+</div>
+{% endblock %}

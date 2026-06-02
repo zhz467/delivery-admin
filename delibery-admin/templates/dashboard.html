@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-speedometer2"></i> Панель управления</h2>
+
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <div class="card card-stats bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Всего заказов</h5>
+                <h2 class="display-4">{{ total_orders }}</h2>
+                <small>за все время</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card card-stats bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Клиентов</h5>
+                <h2 class="display-4">{{ total_clients }}</h2>
+                <small>активных</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card card-stats bg-warning text-white">
+            <div class="card-body">
+                <h5 class="card-title">Курьеров</h5>
+                <h2 class="display-4">{{ total_couriers }}</h2>
+                <small>из них свободны: {{ available_couriers }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card card-stats bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Заказов сегодня</h5>
+                <h2 class="display-4">{{ today_orders }}</h2>
+                <small>{{ now.strftime('%d.%m.%Y') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Заказы по статусам</h5>
+            </div>
+            <div class="card-body">
+                {% for status_name, count in status_stats %}
+                <div class="mb-2">
+                    <span>{{ status_name }}</span>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ (count / total_orders * 100) if total_orders > 0 else 0 }}%">
+                            {{ count }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Последние действия</h5>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                {% for activity in recent_activities %}
+                <div class="border-bottom pb-2 mb-2">
+                    <small class="text-muted">{{ activity.created_at.strftime('%d.%m.%Y %H:%M') }}</small>
+                    <div>{{ activity.user.email }}: {{ activity.action }} {{ activity.entity }} #{{ activity.entity_id }}</div>
+                </div>
+                {% else %}
+                <p class="text-muted">Нет действий</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="bi bi-truck"></i> Последние заказы</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr><th>ID</th><th>Клиент</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr>
+                </thead>
+                <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.client.name }}</td>
+                        <td>{{ "{:,.2f}".format(order.total) }} ₽</td>
+                        <td><span class="badge bg-{{ order.status.color }}">{{ order.status.name }}</span></td>
+                        <td>{{ order.created_at.strftime('%d.%m.%Y') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

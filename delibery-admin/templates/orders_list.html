@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-truck"></i> Заказы</h2>
+    <a href="{{ url_for('order_create') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Новый заказ
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <form method="GET" class="row g-3 mb-4">
+            <div class="col-md-6">
+                <input type="text" name="search" class="form-control" placeholder="Поиск по клиенту, адресу, ID" value="{{ search }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">Все статусы</option>
+                    {% for status in statuses %}
+                    <option value="{{ status.id }}" {% if status_filter|string == status.id|string %}selected{% endif %}>{{ status.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">Фильтр</button>
+            </div>
+        </form>
+        
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr><th>ID</th><th>Клиент</th><th>Адрес</th><th>Сумма</th><th>Статус</th><th>Дата</th><th>Действия</th></tr>
+                </thead>
+                <tbody>
+                    {% for order in orders.items %}
+                    <tr>
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.client.name }}</td>
+                        <td>{{ order.address[:50] }}</td>
+                        <td>{{ "{:,.2f}".format(order.total) }} ₽</td>
+                        <td><span class="badge bg-{{ order.status.color }}">{{ order.status.name }}</span></td>
+                        <td>{{ order.created_at.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('order_edit', id=order.id) }}" class="btn btn-sm btn-warning">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ order.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    
+                    <!-- Modal удаления -->
+                    <div class="modal fade" id="deleteModal{{ order.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Подтверждение удаления</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    Удалить заказ #{{ order.id }}? Это действие нельзя отменить.
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                    <form method="POST" action="{{ url_for('order_delete', id=order.id) }}">
+                                        <button type="submit" class="btn btn-danger">Удалить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Пагинация -->
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if orders.has_prev %}
+                <li class="page-item"><a class="page-link" href="?page={{ orders.prev_num }}&search={{ search }}&status={{ status_filter }}">←</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Стр {{ orders.page }} из {{ orders.pages }}</span></li>
+                {% if orders.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ orders.next_num }}&search={{ search }}&status={{ status_filter }}">→</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+{% endblock %}

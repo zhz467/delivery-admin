@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Admin Panel - Управление доставкой</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delivery Admin Panel - Управление доставкой</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            background: #f0f2f5;
+        }
+        
+        /* ============ Sidebar Styles ============ */
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .logo-area {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar .logo-area i {
+            font-size: 2.5rem;
+            color: #667eea;
+        }
+        
+        .sidebar .logo-area h4 {
+            color: white;
+            margin-top: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .logo-area small {
+            color: rgba(255,255,255,0.6);
+            font-size: 0.75rem;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 12px 20px;
+            margin: 4px 8px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 12px;
+            width: 24px;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .sidebar hr {
+            margin: 15px 8px;
+            border-color: rgba(255,255,255,0.1);
+        }
+        
+        /* ============ Main Content ============ */
+        .main-content {
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        
+        /* ============ Top Navbar ============ */
+        .navbar-top {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-radius: 0 0 10px 10px;
+            margin-bottom: 20px;
+        }
+        
+        .navbar-top .btn-toggle {
+            border: 1px solid #dee2e6;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+        
+        .navbar-top .btn-toggle:hover {
+            background: #f8f9fa;
+            transform: scale(1.02);
+        }
+        
+        .dropdown-toggle::after {
+            display: none;
+        }
+        
+        .dropdown-menu {
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border: none;
+            margin-top: 10px;
+        }
+        
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: all 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+        
+        .dropdown-item i {
+            margin-right: 10px;
+            width: 20px;
+        }
+        
+        /* ============ Cards ============ */
+        .card-stats {
+            border: none;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        
+        .card-stats:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .card-stats .card-body {
+            padding: 20px;
+        }
+        
+        .card-stats h2 {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        /* ============ Tables ============ */
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            background: white;
+        }
+        
+        .table thead th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+            font-weight: 600;
+            padding: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .table tbody td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+            transition: all 0.2s;
+        }
+        
+        /* ============ Badges ============ */
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        
+        /* ============ Buttons ============ */
+        .btn-sm {
+            margin: 0 2px;
+            border-radius: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        /* ============ Flash Messages ============ */
+        .flash-messages {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+            min-width: 320px;
+            max-width: 450px;
+        }
+        
+        .flash-messages .alert {
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            animation: slideInRight 0.3s ease-out;
+            border: none;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* ============ Forms ============ */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 15px;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #495057;
+        }
+        
+        /* ============ Pagination ============ */
+        .pagination {
+            margin-top: 20px;
+        }
+        
+        .page-link {
+            border-radius: 8px;
+            margin: 0 3px;
+            color: #667eea;
+            border: 1px solid #dee2e6;
+        }
+        
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #667eea;
+        }
+        
+        /* ============ Animations ============ */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        /* ============ Custom Scrollbar ============ */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* ============ Responsive Design ============ */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                width: 280px;
+                transition: left 0.3s ease;
+                z-index: 1050;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                width: 100%;
+                margin-left: 0 !important;
+            }
+            
+            .flash-messages {
+                left: 20px;
+                right: 20px;
+                min-width: auto;
+                top: 70px;
+            }
+            
+            .card-stats h2 {
+                font-size: 1.5rem;
+            }
+            
+            .table-responsive {
+                font-size: 0.85rem;
+            }
+            
+            .btn-sm {
+                padding: 4px 8px;
+                font-size: 0.75rem;
+            }
+        }
+        
+        /* ============ Loading Spinner ============ */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* ============ Additional Utilities ============ */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- ============ SIDEBAR ============ -->
+            <div class="col-md-3 col-lg-2 px-0 sidebar" id="sidebar">
+                <div class="logo-area">
+                    <i class="bi bi-box-seam"></i>
+                    <h4>Delivery Admin</h4>
+                    <small>Панель управления</small>
+                </div>
+                
+                <nav class="nav flex-column">
+                    <!-- Dashboard -->
+                    <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" 
+                       href="{{ url_for('dashboard') }}">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                    
+                    <!-- Заказы - доступно admin и manager -->
+                    {% if has_role('admin') or has_role('manager') %}
+                    <a class="nav-link {% if request.endpoint == 'orders_list' %}active{% endif %}" 
+                       href="{{ url_for('orders_list') }}">
+                        <i class="bi bi-truck"></i> Заказы
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Клиенты - доступно admin и manager -->
+                    {% if has_role('admin') or has_role('manager') %}
+                    <a class="nav-link {% if request.endpoint == 'clients_list' %}active{% endif %}" 
+                       href="{{ url_for('clients_list') }}">
+                        <i class="bi bi-people"></i> Клиенты
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Курьеры - доступно admin и manager -->
+                    {% if has_role('admin') or has_role('manager') %}
+                    <a class="nav-link {% if request.endpoint == 'couriers_list' %}active{% endif %}" 
+                       href="{{ url_for('couriers_list') }}">
+                        <i class="bi bi-person-badge"></i> Курьеры
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Маршруты - доступно admin, manager и courier_viewer -->
+                    {% if has_role('admin') or has_role('manager') or has_role('courier_viewer') %}
+                    <a class="nav-link {% if request.endpoint == 'routes_list' %}active{% endif %}" 
+                       href="{{ url_for('routes_list') }}">
+                        <i class="bi bi-map"></i> Маршруты
+                    </a>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <!-- Пользователи - ТОЛЬКО ДЛЯ ADMIN -->
+                    {% if has_role('admin') %}
+                    <a class="nav-link {% if request.endpoint == 'users_list' %}active{% endif %}" 
+                       href="{{ url_for('users_list') }}">
+                        <i class="bi bi-shield-lock"></i> Пользователи
+                    </a>
+                    {% endif %}
+                    
+                    <!-- Журнал действий - доступно admin и manager -->
+                    {% if has_role('admin') or has_role('manager') %}
+                    <a class="nav-link {% if request.endpoint == 'activity_log' %}active{% endif %}" 
+                       href="{{ url_for('activity_log') }}">
+                        <i class="bi bi-journal-text"></i> Журнал
+                    </a>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <!-- Профиль - доступно всем -->
+                    <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" 
+                       href="{{ url_for('profile') }}">
+                        <i class="bi bi-person-circle"></i> Профиль
+                    </a>
+                    
+                    <!-- Выход - доступно всем -->
+                    <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                        <i class="bi bi-box-arrow-right"></i> Выход
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- ============ MAIN CONTENT ============ -->
+            <div class="col-md-9 col-lg-10 ms-auto main-content">
+                <!-- Top Navbar -->
+                <nav class="navbar-top p-3 d-flex justify-content-between align-items-center">
+                    <button class="btn btn-toggle d-md-none" id="sidebarToggle">
+                        <i class="bi bi-list"></i> Меню
+                    </button>
+                    
+                    <div class="ms-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> 
+                                <span class="d-none d-md-inline">{{ current_user.full_name }}</span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('profile') }}">
+                                        <i class="bi bi-person"></i> Мой профиль
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="#">
+                                        <i class="bi bi-envelope"></i> {{ current_user.email }}
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ url_for('logout') }}">
+                                        <i class="bi bi-box-arrow-right"></i> Выход
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+                
+                <!-- Flash Messages -->
+                <div class="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" 
+                                     role="alert">
+                                    <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" 
+                                            aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <!-- Content Block -->
+                <div class="px-3 px-md-4 py-3 fade-in">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ============ SCRIPTS ============ -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+        
+        // Auto close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            if (window.innerWidth <= 768) {
+                if (sidebar && toggleBtn && 
+                    !sidebar.contains(event.target) && 
+                    !toggleBtn.contains(event.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+        
+        // Auto hide flash messages after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.flash-messages .alert').forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateX(100%)';
+                    setTimeout(() => alert.remove(), 300);
+                }, 4000);
+            });
+        }, 1000);
+        
+        // Add active class based on current URL
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentLocation = window.location.pathname;
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                const href = link.getAttribute('href');
+                if (href && href !== '#' && currentLocation.includes(href)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Confirm delete actions
+        document.querySelectorAll('.btn-delete').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('Вы уверены, что хотите удалить эту запись? Это действие нельзя отменить.')) {
+                    e.preventDefault();
+                }
+            });
+        });
+        
+        // Prevent double form submission
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const submitBtn = form.querySelector('[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="loading"></span> Загрузка...';
+                }
+            });
+        });
+        
+        // Tooltip initialization
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    </script>
+    
+    <!-- Additional block for page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card shadow-sm">
+    <div class="card-header">
+        <h4 class="mb-0">{{ 'Редактирование' if order else 'Создание' }} заказа</h4>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Клиент *</label>
+                    <select name="client_id" class="form-select" required>
+                        <option value="">Выберите клиента</option>
+                        {% for client in clients %}
+                        <option value="{{ client.id }}" {% if order and order.client_id == client.id %}selected{% endif %}>
+                            {{ client.name }} ({{ client.phone }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Курьер</label>
+                    <select name="courier_id" class="form-select">
+                        <option value="">Не назначен</option>
+                        {% for courier in couriers %}
+                        <option value="{{ courier.id }}" {% if order and order.courier_id == courier.id %}selected{% endif %}>
+                            {{ courier.user.full_name if courier.user else 'Курьер #'+courier.id|string }} ({{ courier.vehicle_type }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Статус *</label>
+                    <select name="status_id" class="form-select" required>
+                        {% for status in statuses %}
+                        <option value="{{ status.id }}" {% if order and order.status_id == status.id %}selected{% endif %}>
+                            {{ status.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Сумма (₽) *</label>
+                    <input type="number" step="0.01" name="total" class="form-control" required value="{{ order.total if order else '' }}">
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Адрес доставки *</label>
+                    <input type="text" name="address" class="form-control" required value="{{ order.address if order else '' }}">
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label">Примечания</label>
+                    <textarea name="notes" class="form-control" rows="3">{{ order.notes if order else '' }}</textarea>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{{ url_for('orders_list') }}" class="btn btn-secondary">Отмена</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

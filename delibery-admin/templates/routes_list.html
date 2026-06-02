@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+        <i class="bi bi-map"></i> Маршруты
+    </h2>
+    <a href="{{ url_for('route_create') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Добавить маршрут
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <!-- Фильтры -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Поиск по курьеру или заметкам...">
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="dateFilter" class="form-control">
+            </div>
+            <div class="col-md-3">
+                <select id="courierFilter" class="form-select">
+                    <option value="">Все курьеры</option>
+                    {% set unique_couriers = {} %}
+                    {% for route in routes %}
+                        {% if route.courier.id not in unique_couriers %}
+                            {% set _ = unique_couriers.update({route.courier.id: route.courier}) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% for courier_id, courier in unique_couriers.items() %}
+                    <option value="{{ courier.id }}">
+                        {{ courier.user.full_name if courier.user else 'Курьер #' + courier.id|string }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100" onclick="filterTable()">
+                    <i class="bi bi-search"></i> Найти
+                </button>
+            </div>
+        </div>
+
+        <!-- Таблица маршрутов -->
+        <div class="table-responsive">
+            <table class="table table-hover" id="routesTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 50px;">ID</th>
+                        <th style="width: 120px;">Дата</th>
+                        <th>Курьер</th>
+                        <th>Время начала</th>
+                        <th>Время окончания</th>
+                        <th>Расстояние (км)</th>
+                        <th>Заметки</th>
+                        <th style="width: 100px;">Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for route in routes %}
+                    <tr class="route-row" 
+                        data-courier="{{ (route.courier.user.full_name if route.courier.user else 'Курьер #' + route.courier.id|string)|lower }}"
+                        data-date="{{ route.date.strftime('%Y-%m-%d') }}"
+                        data-courier-id="{{ route.courier.id }}">
+                        <td>#{{ route.id }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ route.date.strftime('%d.%m.%Y') }}
+                            </span>
+                        </td>
+                        <td>
+                            <i class="bi bi-person-badge"></i>
+                            {{ route.courier.user.full_name if route.courier.user else 'Курьер #' + route.courier.id|string }}
+                            <br>
+                            <small class="text-muted">{{ route.courier.phone }}</small>
+                        </td>
+                        <td>
+                            {% if route.start_time %}
+                            <i class="bi bi-clock"></i> {{ route.start_time.strftime('%H:%M') }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if route.end_time %}
+                            <i class="bi bi-clock"></i> {{ route.end_time.strftime('%H:%M') }}
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if route.total_distance %}
+                            <span class="badge bg-info">
+                                {{ route.total_distance }} км
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small>{{ route.notes or '-' }}</small>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('route_edit', id=route.id) }}" class="btn btn-sm btn-warning" title="Редактировать">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" title="Удалить" 
+                                    data-bs-toggle="modal" data-bs-target="#deleteModal{{ route.id }}">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Modal удаления -->
+                    <div class="modal fade" id="deleteModal{{ route.id }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-exclamation-triangle"></i> Подтверждение удаления
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Вы действительно хотите удалить маршрут?</p>
+                                    <div class="alert alert-warning">
+                                        <strong>Маршрут #{{ route.id }}</strong><br>
+                                        Дата: {{ route.date.strftime('%d.%m.%Y') }}<br>
+                                        Курьер: {{ route.courier.user.full_name if route.courier.user else 'Курьер #' + route.courier.id|string }}
+                                    </div>
+                                    <p class="text-danger mb-0">
+                                        <i class="bi bi-info-circle"></i> 
+                                        Это действие нельзя отменить.
+                                    </p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                    <form method="POST" action="{{ url_for('route_delete', id=route.id) }}">
+                                        <button type="submit" class="btn btn-danger">Удалить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 48px; color: #ccc;"></i>
+                            <p class="text-muted mt-2">Нет маршрутов</p>
+                            <a href="{{ url_for('route_create') }}" class="btn btn-success mt-2">
+                                <i class="bi bi-plus-circle"></i> Добавить первый маршрут
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Статистика -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    Всего маршрутов: <strong>{{ routes|length }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterTable() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const dateValue = document.getElementById('dateFilter').value;
+        const courierId = document.getElementById('courierFilter').value;
+        const rows = document.querySelectorAll('.route-row');
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            const courierName = row.dataset.courier;
+            const rowDate = row.dataset.date;
+            const rowCourierId = row.dataset.courierId;
+            
+            let show = true;
+            
+            if (searchText && !courierName.includes(searchText)) {
+                show = false;
+            }
+            if (dateValue && rowDate !== dateValue) {
+                show = false;
+            }
+            if (courierId && rowCourierId !== courierId) {
+                show = false;
+            }
+            
+            row.style.display = show ? '' : 'none';
+            if (show) visibleCount++;
+        });
+        
+        // Показать сообщение если ничего не найдено
+        const tbody = document.querySelector('#routesTable tbody');
+        let noDataRow = document.getElementById('noDataRow');
+        
+        if (visibleCount === 0 && (searchText || dateValue || courierId)) {
+            if (!noDataRow) {
+                noDataRow = document.createElement('tr');
+                noDataRow.id = 'noDataRow';
+                noDataRow.innerHTML = '<td colspan="8" class="text-center py-5"><i class="bi bi-search" style="font-size: 48px; color: #ccc;"></i><p class="text-muted mt-2">Ничего не найдено</p></td>';
+                tbody.appendChild(noDataRow);
+            }
+        } else if (noDataRow) {
+            noDataRow.remove();
+        }
+    }
+    
+    // Поиск при нажатии Enter
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            filterTable();
+        }
+    });
+    
+    document.getElementById('dateFilter').addEventListener('change', filterTable);
+    document.getElementById('courierFilter').addEventListener('change', filterTable);
+</script>
+{% endblock %}
